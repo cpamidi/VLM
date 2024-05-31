@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Please upload chest x-ray to get report</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  </head>
+  <body
+    class="flex flex-col items-center justify-center h-screen bg-gray-100"
+  >
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState } = React
+
+      function App() {
+        const [image, setImage] = useState(null)
+        const [loading, setLoading] = useState(false)
+        const [resultString, setResultString] = useState('')
+
+        const handleImageChange = (e) => {
+          setImage(e.target.files[0])
+        }
+
+        const handleSubmit = async () => {
+          if (!image) {
+            alert('Please upload chest x-ray to get report')
+            return
+          }
+
+          setLoading(true)
+          const formData = new FormData()
+          formData.append('image', image)
+
+          const response = await fetch(
+            'http://127.0.0.1:5000/generate_caption',
+            {
+              method: 'POST',
+              body: formData,
+            },
+          )
+          const data = await response.json()
+
+          await setResultString(data.report)
+          setLoading(false)
+
+         
+        }
+
+        return (
+          <div className='flex flex-col items-center'>
+            <h1 className='text-2xl font-bold mb-4'>
+              Upload Image and Get String
+            </h1>
+            <div className='flex flex-col items-center gap-4'>
+              <input
+                type='file'
+                accept='image/*'
+                onChange={handleImageChange}
+                className='mb-2'
+              />
+              <button
+                onClick={handleSubmit}
+                className='bg-blue-500 text-white px-4 py-2 rounded'
+              >
+                Submit
+              </button>
+            </div>
+            {loading && " Please be Patient Its a long drive "}
+            {resultString && (
+              <div className='flex justify-between w-full max-w-2xl mt-6'>
+                <div className='max-w-1/2 border p-2 bg-white'>
+                  {resultString}
+                </div>
+              </div>
+            )}
+          </div>
+        )
+      }
+
+      ReactDOM.render(<App />, document.getElementById('root'))
+    </script>
+  </body>
+</html>
